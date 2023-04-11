@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+
+<script id="vertex-shader" type="x-shader/x-vertex">
+
+attribute vec3 vPosition;
+attribute vec3 vNormal;
+
+varying vec4 fColor;
+
+
+uniform vec4 ambientProduct, diffuseProduct, specularProduct;
+uniform mat4 modelViewMatrix;
+uniform mat4 projectionMatrix;
+uniform vec4 lightPosition;
+uniform float shininess; 
+
+
+void
+main()
+{
+    //set for light point
+    gl_PointSize = 15.0;
+
+	vec4 pos4D = vec4(vPosition, 1.0);
+	vec4 nor4D = vec4(vNormal, 0.0);
+    
+
+    
+    //compute lighting in eye coordinates
+    vec3 pos = (modelViewMatrix * pos4D).xyz;
+	// input light has been defined in eye coords in js
+    // Fixed light did not rotate
+    vec3 light = (modelViewMatrix * lightPosition).xyz;
+    vec3 L = normalize( light - pos );
+
+	// eye coordinates assumes eye at origin
+	vec3 eyePoint = vec3(0.0, 0.0, 0.0);
+	vec3 E = normalize( eyePoint - pos );
+
+    // halfway vector
+    vec3 H = normalize( L + E );
+	
+    // Transform vertex normal into eye coordinates
+    vec3 N = normalize( (modelViewMatrix*nor4D).xyz);
+
+    // Compute terms in the illumination equation
+    vec4 ambient = ambientProduct;
+
+    float Kd = max( dot(L, N), 0.0 );
+    vec4  diffuse = Kd*diffuseProduct;
+	
+	// play: this is how you might do debugging; 
+	//setting colors on condition
+	//if(dot(L, N) < 0.0) diffuse = vec4(1.0, 0.0, 0.0, 1.0);
+
+    float Ks = pow( max(dot(N, H), 0.0), shininess );
+    vec4  specular = Ks * specularProduct;
+    
+    if( dot(L, N) < 0.0 ) {
+	specular = vec4(0.0, 0.0, 0.0, 1.0);
+    } 
+	
+	// play  
+	//diffuse = vec4(0.0, 0.0, 0.0, 1.0);
+	//ambient = vec4(0.0, 0.0, 0.0, 1.0);
+	//specular = vec4(0.0, 0.0, 0.0, 1.0);
+	
+	
+    fColor = ambient + diffuse +specular;
+	fColor.a = 1.0;
+	
+    gl_Position = projectionMatrix * modelViewMatrix * pos4D;
+
+    
+}
+</script>
+
+<script id="fragment-shader" type="x-shader/x-fragment">
+
+precision mediump float;
+
+varying vec4 fColor;
+
+void
+main()
+{
+
+    gl_FragColor = fColor;
+
+}
+</script>
+
+<script type="text/javascript" src="../Common/webgl-utils.js"></script>
+<script type="text/javascript" src="../Common/initShaders.js"></script>
+<script type="text/javascript" src="../Common/MV.js"></script>
+<script type="text/javascript" src="YuF_hw3.js"></script>
+<script type="text/javascript" src="YuF_geometry.js"></script>
+
+
+
+<body style="font-family:verdana;">
+
+<canvas id="gl-canvas" width="512" height="512">
+Oops ... your browser doesn't support the HTML5 canvas element
+</canvas>
+
+<div>
+SOR change
+<button id = "Cylinder">Cylinder</button>
+<button id = "Hat">Hat</button>
+</div>
+
+<div>
+Resolution change
+<button id = "low">Low Resolution</button>
+<button id = "high">High Resolution</button>
+</div>
+
+<div>
+Material change
+<button id = "silver"">silver</button>
+<button id = "pearl">pearl</button>
+<button id = "turquoise">turquoise</button>
+</div>
+
+<div>
+Light movement change
+<button id = "rotate">rotate light</button>
+<button id = "fixed">fixed light</button>
+</div>
+
+<div>
+    <br>
+    fov Degree 10<input id="fovSlider" type="range"
+     min="10" max="100" step="1" value="60" />100<br>
+</div>    
+
+<h1> CSE 470 HW#3: In the soptlight</h1>
+
+<strong>Author: </strong>Yu Fu
+&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp
+<strong>Date: </strong>Mar25 2021</br>
+
+<strong>Description: </strong> 
+<br>This is HW 3 from CSE 470 </br>
+Object with light are in the canvas. There are two different object, one is a cylinder, another is a hat.</br>
+User can change the SOR by click the button</br>
+The resolution change is for a low or high resolution SOR</br>
+Three distinct materials can be choose: silver, pearl, and turquoise</br>
+The light can be eith rotate around the object or in a fixed position</br>
+The slider of fov degree allow user change from 10 to 100 degree, and initial in 60 degree</br>
+Also, user can interact with object with their mouse click and movement.</br>
+
+<br> </br>
+<strong>Resources used</strong> 
+<br>Professor Hansford material: code in mouserotation, and shapeshader1</br>
+<br>Material reference from OpenGL/VRML Materials: http://devernay.free.fr/cours/opengl/materials.html</br>
+<br>Vetice and NormalsArray in geometry factor in calculation refrence:https://forums.ni.com/t5/Measurement-Studio-for-NET/Plot-3D-Parametric-Surface-method-on-3DGraph-control/m-p/476485?profile.language=en</br>
+
+
+<div >
+LookAt parameters:
+<h4 id="lookEye"></h4>
+<h4 id="lookAt"></h4>
+<h4 id="lookUp"></h4>
+</div>
+
+</body>
+</html>
