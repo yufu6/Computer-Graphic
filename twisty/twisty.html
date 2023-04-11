@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+<title>T W I S T Y !</title>
+
+
+<!-- Vertex Shader -->
+<script id="vertex-shader" type="x-shader/x-vertex">
+
+// This is GLSL code (not HTML5)
+
+attribute vec4 vPosition;
+uniform float colorRate;
+
+//HW470: one or more uniforms to control twisting and color change
+//uniform 
+uniform float theta;
+ 
+//incoming color attribute and varying for fragment shader
+attribute vec3 vColor;
+varying vec4 color;
+
+void
+main()
+{
+	// HW470: twisty the geometry x,y coords and set z and w
+	// Change the code below.
+
+	float dd = theta/theta;
+    float s = sin( theta);
+	float c = cos( theta);
+	float x = ( vPosition.x *  vPosition.x);
+	float y = ( vPosition.y *  vPosition.y);
+	float sum = (x + y);
+	float d = sqrt(sum);
+	float angle = (d * theta);
+	float sa = sin( angle);
+	float ca = cos( angle);
+
+	//faded function to lower the faded speed
+	//0.45 is for lower the fad
+	float faded = cos (0.45 * theta);
+
+	//deformation of the twisted object along with rotation
+	gl_Position.x =  ca * vPosition.x - sa * vPosition.y;
+	gl_Position.y =  sa * vPosition.x + ca * vPosition.y;
+	//gl_Position.x =  c * vPosition.x - s * vPosition.y;
+	//gl_Position.y =  s * vPosition.x + c * vPosition.y;
+	
+    gl_Position.z = 0.0;
+	gl_Position.w = 1.0;
+	
+	
+	// common mistake: using integer instead of float
+	// gl_Position.w = 1; 
+	//     -- this would result in an error
+	// common mistake: trying to change a uniform variable here
+
+	
+	//HW470: Modify color   
+	// colors are between 0 and 1. 
+	// You will need to do linear interpolation
+	// for example interpolate between current red component and 1.0 
+	float red = vColor.r + theta;
+	
+	float green = vColor.g + theta;
+	
+	float blue = vColor.b + theta;
+
+	//set the varying color for the fragment shader 
+	//Fading/Unfading color and rotation occurs in the vertex shader
+	color = vec4(red+theta, green+theta, blue+theta, 1.0);
+
+}
+</script>
+
+<!-- Fragment Shader -->
+<!-- (no change to this) -->
+
+<script id="fragment-shader" type="x-shader/x-fragment">
+
+// This is GLSL code (not HTML5)
+
+precision mediump float;
+
+// Color coming in
+varying vec4 color;
+
+
+void
+main()
+{
+   //pass color to fragment shader
+    gl_FragColor = color;
+}
+</script>
+
+<!-- JS Utility codes and codes for this program -->
+<script type="text/javascript" src="../Common/webgl-utils.js"></script>
+<script type="text/javascript" src="../Common/initShaders.js"></script>
+<script type="text/javascript" src="../Common/MV.js"></script>
+<script type="text/javascript" src="twisty.js"></script>
+</head>   
+
+<body>
+<!--HW470: Add text to communicate what program does -->
+<div style="font-family:verdana";>
+<h1> CSE 470 HW#1: TWISTY!</h1>
+
+<strong>Author: </strong>Yu Fu
+&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp        
+<strong>Date: </strong>Jan 30 2021</br>
+
+</br>
+<strong>Description: </strong></br>This program is for CSE 470 first assignment - TWISTY.
+Animate the design with the twisty action. 
+The object rotates counterclockwise first, then rotates back in the opposite direction and fades to the background color when it reaches the end of the counterclockwise rotation.
+ At the end of the clockwise rotation, the original color will be restored. 
+ At the same time the other object remains stationary. This action will be repeated as long as the program is running.
+</br>
+</br>
+<strong>How did you map color from the initial (r,g,b) to white?</strong></br>
+HW470: Using the cos(theta) in color function to set the color fading while routation. 
+The color function is set the varying color for the fragment shader. Cos is a value relate with rotation angle.
+For that, using cos value in color function can  map color from the initial to white.
+To slove the fading speed, I tried different combination of theta and found value that is not too slow or too fast. 
+</br>
+</br>
+<strong>Resources: </strong>Prof. Angel's codes. </br>
+</br>
+</div>
+
+<canvas id="gl-canvas" width="512" height="512" style="border:2px solid #000000;">
+Oops ... your browser doesn't support the HTML5 canvas element
+</canvas>
+
+</body>
+</html>
