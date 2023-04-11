@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+<title>Pick a Cube</title>
+
+
+<!-- Vertex Shader -->
+<script id="vertex-shader" type="x-shader/x-vertex">
+
+// This is GLSL code (not HTML5)
+
+attribute vec4 vPosition;
+attribute vec4 vColor;
+varying vec4 fColor;
+uniform vec3 theta;
+
+uniform mat4 modelView;
+
+
+void main() 
+{
+
+   fColor = vColor;
+
+	gl_Position = modelView *vPosition;
+} 
+</script>
+
+<script id="fragment-shader" type="x-shader/x-fragment">
+
+precision mediump float;
+
+varying vec4 fColor;
+
+
+void
+main()
+{
+    gl_FragColor = fColor;
+}
+</script>
+
+<!-- JS Utility codes and codes for this program -->
+<script type="text/javascript" src="../Common/webgl-utils.js"></script>
+<script type="text/javascript" src="../Common/initShaders.js"></script>
+<script type="text/javascript" src="../Common/MV.js"></script>
+<script type="text/javascript" src="CreateCube.js"></script>
+<script type="text/javascript" src="pickAcube.js"></script>
+</head>   
+
+<body>
+
+<canvas id="gl-canvas" width="512" height="512" style="border:2px solid #000000;">
+Oops ... your browser doesn't support the HTML5 canvas element
+</canvas>
+
+<!--HW470: Add text to communicate what program does -->
+<div style="font-family:verdana";>
+<br> Make the center cube replicate motion of an outer cube.
+<br>Click canvas to pick a cube</br>
+
+<button id= "resetButton">Reset center cube</button>
+
+<div>
+<!-- scale Initialize to 0.2 -->
+
+scale cube 10% <input id="scale" type="range"
+ min="0.1" max="0.7" step="0.005" value="0.2" />
+ 100%
+</div>
+<div>
+<!-- speed Initialize to 0.2 -->
+rotation speed 0 <input id="rotation" type="range"
+min="0.1" max="1" step="0.1" value="0.2" />
+2
+ </div>
+
+<h1> CSE 470 HW#2: Pick a Cube</h1>
+
+<strong>Author: </strong>Yu Fu
+&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp
+<strong>Date: </strong>Feb 22 2021</br>
+
+
+<strong>Description: </strong> Eight cubes are centered at equally spaced positions 
+on the circle, and one cube is centered at the origin.
+ The outer cubes are rotated around their centers and the axis vectors
+  defined by their respective centers and the origin. 
+  The user can interact with speed, size, and selection.</br>
+
+<strong>Functionality: </strong>
+<br>The eight squares lie on a circle of radius 0.75 
+and rotate in different directions. The center square does not move. 
+The user can click on one of the eight squares and the center square
+ should rotate with the square clicked by the user. The user can also adjust 
+ the speed of rotation of the cube with respect to the size of the cube </br>
+
+<strong>Parameters: </strong>
+<br>mvMatrix: define the cube matrix. Other mvMatrix used for define every cube with different location and rotation.</br>
+<br>sclare: define the scale of the cude. The origianl scale is 0.2, 0.2, 0.2</br>
+<br>t: translate formula, used for adjust the cube.</br>
+<br>theta: the degree of rotation speed. Used for change rotation speed also.</br> 
+
+<strong>Resources: </strong>Prof. Angel's codes. </br>
+
+</div>
+</body>
+</html>
