@@ -1,0 +1,220 @@
+<html>
+
+<head>
+<style>
+table, th, td {
+  border: 1px solid black;
+  border-collapse: collapse;
+}
+th, td {
+  padding: 15px;
+}
+</style>
+
+<script id="vertex-shader" type="x-shader/x-vertex">
+  attribute  vec4 vPosition;
+  attribute vec3 vNormal;
+
+  uniform mat4 modelViewMatrix;
+  uniform mat4 projectionMatrix;
+  uniform mat4 perspectiveMatrix;
+
+  attribute  vec4 vColor;
+  attribute  vec2 vTexCoord;
+
+  varying vec4 fColor;
+  varying vec2 fTexCoord;
+  
+  uniform vec4 ambientProduct, diffuseProduct, specularProduct;
+  uniform vec4 lightPosition;
+  uniform float shininess; 
+
+
+  void main()
+  {
+    vec4 pos4D = vPosition;
+	  vec4 nor4D = vec4(vNormal, 0.0);
+	
+	
+	
+      //compute lighting in eye coordinates
+    vec3 pos = (modelViewMatrix * pos4D).xyz;
+	// input light has been defined in eye coords in js
+    vec3 light = lightPosition.xyz;
+    vec3 L = normalize( light - pos );
+
+	// eye coordinates assumes eye at origin
+	vec3 eyePoint = vec3(0.0, 0.0, 0.0);
+	vec3 E = normalize( eyePoint - pos );
+
+    // halfway vector
+    vec3 H = normalize( L + E );
+	
+    // Transform vertex normal into eye coordinates
+    vec3 N = normalize( (modelViewMatrix*nor4D).xyz);
+
+    // Compute terms in the illumination equation
+    vec4 ambient = ambientProduct;
+
+    float Kd = max( dot(L, N), 0.0 );
+    vec4  diffuse = Kd*diffuseProduct;
+	
+	// play: this is how you might do debugging; 
+	//setting colors on condition
+	//if(dot(L, N) < 0.0) diffuse = vec4(1.0, 0.0, 0.0, 1.0);
+
+    float Ks = pow( max(dot(N, H), 0.0), shininess );
+    vec4  specular = Ks * specularProduct;
+    
+    if( dot(L, N) < 0.0 ) {
+	specular = vec4(0.0, 0.0, 0.0, 1.0);
+    } 
+	
+	// play  
+	//diffuse = vec4(0.0, 0.0, 0.0, 1.0);
+	//ambient = vec4(0.0, 0.0, 0.0, 1.0);
+	//specular = vec4(0.0, 0.0, 0.0, 1.0);
+	
+    gl_Position = projectionMatrix * perspectiveMatrix * modelViewMatrix * pos4D;
+    fTexCoord = vTexCoord;
+    fColor = ambient + diffuse +specular;
+    fColor.a = 1.0;
+
+    //fColor = vColor;
+
+
+  }
+  </script>
+  
+  <script id="fragment-shader" type="x-shader/x-fragment">
+  
+  precision mediump float;
+  
+  varying vec4 fColor;
+  varying  vec2 fTexCoord;
+  
+  uniform sampler2D Tex0;
+  uniform sampler2D Tex1;
+  
+  void
+  main()
+  {
+      int mychoice = 0;
+
+    // blend face color and both textures
+    if(mychoice == 0) {
+      gl_FragColor = fColor*(texture2D(Tex0, fTexCoord)*texture2D(Tex1, fTexCoord));
+    }
+    // blend textures only
+    if(mychoice == 1) {
+        gl_FragColor = (texture2D(Tex0, fTexCoord)*texture2D(Tex1, fTexCoord));
+    }
+    // blend face color and texture 0
+    if(mychoice == 2) {
+      gl_FragColor = fColor*(texture2D(Tex0, fTexCoord));
+    } 
+    // blend face color and texture 1
+    if(mychoice == 3) {
+      gl_FragColor = fColor*(texture2D(Tex1, fTexCoord));
+	} 
+  }
+</script>
+
+<script id="plane-vertex-shader" type="x-shader/x-vertex">
+  attribute  vec4 pPosition;
+
+  uniform mat4 modelViewMatrix2;
+  uniform mat4 projectionMatrix2;
+  attribute  vec4 pColor;
+  attribute  vec2 vTexCoord;
+  
+  varying vec4 fColor;
+  varying vec2 fTexCoord;
+  
+  void main()
+  {
+    
+      gl_Position = projectionMatrix2 * modelViewMatrix2* pPosition;
+      fColor = pColor;
+      fTexCoord = vTexCoord;
+      fColor = pColor;
+
+  }
+  </script>
+<script id="plane-fragment-shader" type="x-shader/x-fragment">
+  precision mediump float;
+
+void main()
+{
+    gl_FragColor = vec4( 0.5, 0.7, 0.2, 1.0 );
+	
+}
+</script>
+
+<script type="text/javascript" src="../Common/webgl-utils.js"></script>
+<script type="text/javascript" src="../Common/InitShaders.js"></script>
+<script type="text/javascript" src="../Common/MV.js"></script>
+<script type="text/javascript" src="YuF_HW4.js"></script>
+
+</head>
+<body>
+
+  <canvas id="gl-canvas" width="512" height="512">
+    Oops ... your browser doesn't support the HTML5 canvas element
+    </canvas>
+    
+    
+       
+<div>
+<head>
+    <style>
+      .button {
+      -webkit-transition-duration: 0.4s;
+      transition-duration: 0.4s;
+      padding: 16px 32px;
+      text-align: center;
+      border: 2px solid #4CAF50;
+      border-radius:8px;
+      font-size: 16px;
+      }
+      .button:hover {
+      background-color: #4CAF50;
+      color: white;
+      }
+      </style>
+    </head>
+    <body>
+       Animation
+      <button id="animation", class = "button"> On/Off</button>
+   </body>
+
+</div>
+  <h1> CSE 470 HW#4: Meet My Avatar</h1>
+
+  <strong>Author: </strong>Yu Fu
+  &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp
+  <strong>Date: </strong>Apr 7 2021</br>
+  <br></br>
+
+  <strong>Description: </strong> 
+  This is an avatar project that has a custom avatar that moves on a plane surface</br>
+  And to apply textures, Phong illumination, lootAt, and perspective in the project</br>
+  For this project I created a robot of a duck walking on a plane with the same texture as him.</br>
+  The duck contains two eyes, two legs, two foot, tail, head, torse, and mouth. Height 2 trees like the pdf document shows</br>
+  Use Animation On/Off button to toggle move or not.</br>
+  The robot duck can move in a circular and alternate between lifting its legs and wagging its tail on a flat surface. </br>
+  Line textures and yellow lighting were used for my avatar and the plane.</br>
+  To be honest, it's not a good looking duck... but it works.</br>
+  
+  <br> </br>
+  <strong>Resources used</strong> 
+  <br>Professor Hansford material: code in figure, shapeshader1, and textureCubev4</br>
+  <br>Button style learned: https://www.w3schools.com/css/css3_buttons.asp</br>
+  <br>The perspective reference: http://www.opengl-tutorial.org/beginners-tutorials/tutorial-3-matrices/</br>
+ 
+
+<canvas id="gl-canvas" width="512"" height="512"
+Oops ... your browser doesn't support the HTML5 canvas element
+</canvas>
+</body>
+</html>
